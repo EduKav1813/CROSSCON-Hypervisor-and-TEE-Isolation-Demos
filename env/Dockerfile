@@ -30,7 +30,18 @@ RUN apt-get update && \
     bison \
     pkg-config \
     openssl \
-    libssl-dev
+    libssl-dev \
+    cpio \
+    unzip \
+    rsync \
+    bc \
+    device-tree-compiler \
+    gcc-aarch64-linux-gnu \
+    g++-aarch64-linux-gnu \
+    python3-pyelftools  \
+    gcc-riscv64-linux-gnu \
+    g++-riscv64-linux-gnu \
+    binutils-riscv64-linux-gnu
 
 # Install Make 4.2.1
 RUN wget http://ftp.pl.debian.org/debian/pool/main/m/make-dfsg/make_4.2.1-1.2_amd64.deb \
@@ -84,30 +95,6 @@ RUN cd cmake-3.20.0 \
 RUN wget http://ftp.pl.debian.org/debian/pool/main/n/ninja-build/ninja-build_1.10.1-1_amd64.deb \
     && dpkg -i ninja-build_1.10.1-1_amd64.deb
 
-# Install gcc 9.3.0
-RUN apt remove gcc -y
-
-RUN wget http://ftp.pl.debian.org/debian/pool/main/g/gcc-9/gcc-9-base_9.3.0-22_amd64.deb \
-&& dpkg -i gcc-9-base_9.3.0-22_amd64.deb
-
-RUN wget http://ftp.pl.debian.org/debian/pool/main/g/gcc-9/cpp-9_9.3.0-22_amd64.deb \
-&& dpkg -i cpp-9_9.3.0-22_amd64.deb
-
-RUN wget http://ftp.pl.debian.org/debian/pool/main/g/gcc-10/gcc-10-base_10.2.1-6_amd64.deb \
-&& dpkg -i gcc-10-base_10.2.1-6_amd64.deb
-
-RUN wget http://ftp.pl.debian.org/debian/pool/main/g/gcc-10/libtsan0_10.2.1-6_amd64.deb \
-&& dpkg -i libtsan0_10.2.1-6_amd64.deb
-
-RUN wget http://ftp.pl.debian.org/debian/pool/main/g/gcc-9/libasan5_9.3.0-22_amd64.deb \
-&& dpkg -i libasan5_9.3.0-22_amd64.deb
-
-RUN wget http://ftp.pl.debian.org/debian/pool/main/g/gcc-9/libgcc-9-dev_9.3.0-22_amd64.deb \
-&& dpkg -i libgcc-9-dev_9.3.0-22_amd64.deb
-
-RUN wget http://ftp.pl.debian.org/debian/pool/main/g/gcc-9/gcc-9_9.3.0-22_amd64.deb \
-&& dpkg -i gcc-9_9.3.0-22_amd64.deb
-
 # Install Arm GNU toolchain
 RUN wget -O aarch64-none-elf.tar.xz "https://developer.arm.com/-/media/Files/downloads/gnu/11.2-2022.02/binrel/gcc-arm-11.2-2022.02-x86_64-aarch64-none-elf.tar.xz?rev=981d8f7e91864070a466d852589598e2&hash=8D5397D4E41C99A96989ED813E8E95F0" \
 && unxz aarch64-none-elf.tar.xz \
@@ -119,21 +106,6 @@ SHELL ["/bin/bash", "-c"]
 
 # Update PATH
 COPY files/env.sh $WORKDIR_PATH/
-
-# Check versions of the dependencies
-RUN source $WORKDIR_PATH/env.sh && make --version
-
-RUN source $WORKDIR_PATH/env.sh && dtc --version
-
-RUN source $WORKDIR_PATH/env.sh && gcc-9 --version
-
-RUN source $WORKDIR_PATH/env.sh && mkimage -V
-
-RUN source $WORKDIR_PATH/env.sh && cmake --version
-
-RUN source $WORKDIR_PATH/env.sh && ninja --version
-
-RUN source $WORKDIR_PATH/env.sh && aarch64-none-elf-gcc --version
 
 # Setup CROSSCON repository
 RUN git clone https://github.com/crosscon/CROSSCON-Hypervisor-and-TEE-Isolation-Demos.git \
@@ -147,3 +119,6 @@ RUN cd $WORKDIR_PATH/crosscon \
 
 # Fix missing "cryptography" python module
 RUN apt install python3-cryptography -y
+
+# copy script for rpi4-ws demo
+COPY files/build.sh $WORKDIR_PATH/
